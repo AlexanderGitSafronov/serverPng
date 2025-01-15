@@ -7,11 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const port = 3000;
-
-app.use(express.static(path.join(__dirname, '../public')));
- // Для обслуживания статических файлов (HTML, CSS, JS)
-app.use(express.json()); // Для обработки JSON
+const port = process.env.PORT || 3000;
 
 let autoScreenshotInterval = null; // Для хранения ID таймера автозапуска
 let nextScreenshotTime = null; // Для хранения времени следующего скриншота
@@ -39,7 +35,7 @@ async function sendScreenshotToMake(base64Screenshot) {
 
 
 async function getScreen(url, tableSelector) {
-    console.log("2222222222222222222222222222222")
+   
     const browser = await puppeteer.launch({
         headless: true,
         defaultViewport: { width: 1920, height: 1080 }
@@ -64,7 +60,7 @@ async function getScreen(url, tableSelector) {
         const screenshotBuffer = await tableElement.screenshot();
         const base64Screenshot = Buffer.from(screenshotBuffer).toString('base64');
         const base64String = `data:image/png;base64,${base64Screenshot}`;
-    console.log(base64String)
+   
         // Отправляем скриншот через вебхук
         await sendScreenshotToMake(base64String);
 
@@ -77,7 +73,8 @@ async function getScreen(url, tableSelector) {
 }
 
 
-
+app.use(express.static('public')); // Для обслуживания статических файлов (HTML, CSS, JS)
+app.use(express.json()); // Для обработки JSON
 
 app.post('/screenshot', async (req, res) => {
     const { url, tableSelector } = req.body;
@@ -96,7 +93,7 @@ app.post('/screenshot', async (req, res) => {
 });
 
 app.post('/auto-screenshot', async (req, res) => {
-    console.log("11111111111111111")
+  
     const { url, tableSelector, interval } = req.body;
 
     if (!url || !tableSelector || !interval) {

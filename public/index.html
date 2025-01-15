@@ -107,7 +107,7 @@
                     document.getElementById('nextTime').textContent = 'Время для скриншота!';
 
                     // Отправляем запрос на сервер для создания скриншота
-                    fetch('/api/screenshot', {
+                    fetch('screenshot', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ url, tableSelector: selector }),
@@ -128,7 +128,8 @@
             e.preventDefault();
             const url = document.getElementById('manualUrl').value;
             const selector = document.getElementById('manualSelector').value;
-            const response = await fetch('/api/screenshot', {
+            showNotification('Скриншот создается!');
+            const response = await fetch('screenshot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, tableSelector: selector }),
@@ -146,7 +147,7 @@
             showNotification('Автосбор запущен!'); // Показать уведомление о запуске автосбора
         
             // Выполним первый сбор сразу
-            fetch('/api/screenshot', {
+            fetch('screenshot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, tableSelector: selector }),

@@ -1,9 +1,9 @@
 {
   "name": "screenshot-task",
   "version": "1.0.0",
-  "main": "./api/screenshot.js",
+  "main": "screenshot.js",
   "scripts": {
-    "start": "node ./api/screenshot.js",
+    "start": "node screenshot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
