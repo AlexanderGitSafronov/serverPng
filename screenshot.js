@@ -110,6 +110,7 @@ let nextScreenshotTime = null; // Для хранения времени сле�
 
 
 async function sendScreenshotToMake(base64Screenshot) {
+   
     try {
         const response = await fetch('https://hook.eu2.make.com/j9i9v86ngvp3mkeogtj2bvef20c2brxd', {
             method: 'POST',
@@ -152,10 +153,11 @@ async function getScreen(url, tableSelector) {
 
         // Делаем скриншот таблицы в формате base64
         const screenshotBuffer = await tableElement.screenshot();
-        const base64Screenshot = screenshotBuffer.toString('base64');
-
+        const base64Screenshot = Buffer.from(screenshotBuffer).toString('base64');
+        const base64String = `data:image/png;base64,${base64Screenshot}`;
+    
         // Отправляем скриншот через вебхук
-        await sendScreenshotToMake(base64Screenshot);
+        await sendScreenshotToMake(base64String);
 
         console.log('Скриншот отправлен в Make.com');
     } catch (error) {
