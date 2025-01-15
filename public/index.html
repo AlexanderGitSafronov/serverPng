@@ -1,0 +1,243 @@
+<!-- <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI для сбора скриншотов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Сбор скриншотов с таблицы</h1>
+    <label for="url">URL страницы:</label>
+    <input type="text" value="https://onlymonster.ai/s/Yi5m11DhNwiQK"  id="url" placeholder="Введите URL">
+    
+    <label for="tableSelector">CSS селектор таблицы:</label>
+    <input type="text" value=".lead-table"  id="tableSelector" placeholder="Введите CSS селектор">
+    
+    <button onclick="collectScreenshot()">Собрать скриншот</button>
+
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        async function collectScreenshot() {
+            const url = document.getElementById('url').value;
+            const tableSelector = document.getElementById('tableSelector').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!url || !tableSelector) {
+                resultDiv.innerHTML = 'Пожалуйста, введите URL и селектор таблицы.';
+                return;
+            }
+
+            resultDiv.innerHTML = 'Загрузка...';
+
+            try {
+                const response = await fetch('/screenshot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, tableSelector })
+                });
+
+                const data = await response.json();
+                console.log(data)
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `${data.message}`;
+                } else {
+                    resultDiv.innerHTML = `Ошибка: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = 'Произошла ошибка при запросе на сервер.';
+            }
+        }
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Скриншоты</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+       
+    
+    </style>
+</head>
+<body>
+    <h1>Скриншоты таблиц</h1>
+
+    <div class="forms">
+        <form id="manualForm">
+            <div>
+                <h2>Ручной сбор скриншота</h2>
+                <label>
+                    URL:
+                    <input type="text" id="manualUrl" required>
+                </label>
+                <label>
+                    Селектор таблицы:
+                    <input type="text" id="manualSelector" required>
+                </label>
+            </div>
+            <div>
+                <button type="submit">Создать скриншот</button>
+            </div>
+        </form>
+    
+        <form id="autoForm">
+            <div>
+                <h2>Автоматический сбор скриншотов</h2>
+                <label>
+                    URL:
+                    <input value="https://onlymonster.ai/s/Yi5m11DhNwiQK" type="text" id="autoUrl" required>
+                </label>
+                <label>
+                    Селектор таблицы:
+                    <input value=".lead-table" type="text" id="autoSelector" required>
+                </label>
+                <label>
+                    Интервал:
+                    <select id="autoInterval">
+                        <option value="60000">Каждую минуту</option>
+                        <option value="14400000">Каждые 4 часа</option>
+                        <option value="43200000">Каждые 12 часов</option>
+                        <option value="86400000">Каждые 24 часа</option>
+                    </select>
+                </label>
+            </div>
+            <div>
+                <button type="submit">Запустить автосбор</button>
+            </div>
+        </form>
+    </div>
+
+    <button id="stopAuto">Остановить автосбор</button>
+
+    <h2>Время до следующего скриншота:</h2>
+    <p id="nextTime">-</p>
+
+    <!-- Всплывающее уведомление -->
+    <div id="notification"></div>
+
+    <script>
+        let timer; // Переменная для хранения таймера
+        let countdown; // Переменная для отслеживания оставшегося времени
+
+        // Функция для отображения всплывающего уведомления
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.backgroundColor = type === 'success' ? '#4CAF50' : '#f44336';
+            notification.style.display = 'block';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Функция обновления времени на странице
+        function updateTimeDisplay(timeLeft) {
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            document.getElementById('nextTime').textContent = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+        }
+
+        // Функция для запуска таймера
+        function startTimer(interval, url, selector) {
+            let timeLeft = interval;
+            updateTimeDisplay(timeLeft); // Обновляем время сразу после запуска
+
+            // Запускаем обратный отсчет
+            countdown = setInterval(() => {
+                timeLeft -= 1000; // Уменьшаем время на 1 секунду
+                updateTimeDisplay(timeLeft);
+
+                // Когда время заканчивается
+                if (timeLeft <= 0) {
+                    clearInterval(countdown); // Останавливаем таймер
+                    document.getElementById('nextTime').textContent = 'Время для скриншота!';
+
+                    // Отправляем запрос на сервер для создания скриншота
+                    fetch('/screenshot', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url, tableSelector: selector }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        showNotification(data.message); // Показываем успешное уведомление
+                        startTimer(interval, url, selector); // Перезапускаем таймер после выполнения действия
+                    })
+                    .catch(error => {
+                        showNotification('Произошла ошибка при сборе скриншота', 'error'); // Показываем ошибку
+                    });
+                }
+            }, 1000); // Обновляем каждую секунду
+        }
+
+        document.getElementById('manualForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('manualUrl').value;
+            const selector = document.getElementById('manualSelector').value;
+            const response = await fetch('/screenshot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, tableSelector: selector }),
+            });
+            const data = await response.json();
+            showNotification(data.message); // Показываем сообщение от сервера
+        });
+
+        document.getElementById('autoForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const url = document.getElementById('autoUrl').value;
+            const selector = document.getElementById('autoSelector').value;
+            const interval = parseInt(document.getElementById('autoInterval').value);
+
+            showNotification('Автосбор запущен!'); // Показать уведомление о запуске автосбора
+
+            // Выполним первый сбор сразу
+            fetch('/screenshot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, tableSelector: selector }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification(data.message); // Показываем сообщение от сервера
+                startTimer(interval, url, selector); // Запускаем таймер на основе выбранного интервала
+            })
+            .catch(error => {
+                showNotification('Произошла ошибка при запуске автосбора', 'error'); // Показываем ошибку
+            });
+        });
+
+        document.getElementById('stopAuto').addEventListener('click', () => {
+            clearInterval(countdown); // Останавливаем таймер
+            document.getElementById('nextTime').textContent = '-';
+            showNotification('Автосбор остановлен');
+        });
+    </script>
+
+</body>
+</html>
