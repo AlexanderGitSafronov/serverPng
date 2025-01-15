@@ -109,14 +109,16 @@ let autoScreenshotInterval = null; // Для хранения ID таймера 
 let nextScreenshotTime = null; // Для хранения времени следующего скриншота
 
 
-async function sendScreenshotToMake(screenshotPath) {
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(screenshotPath)); // Загружаем файл скриншота
-
+async function sendScreenshotToMake(base64Screenshot) {
     try {
         const response = await fetch('https://hook.eu2.make.com/j9i9v86ngvp3mkeogtj2bvef20c2brxd', {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                screenshot: base64Screenshot
+            }),
         });
 
         const data = await response.json();
@@ -128,16 +130,6 @@ async function sendScreenshotToMake(screenshotPath) {
 
 
 async function getScreen(url, tableSelector) {
-    const screenshotsDir = path.join(__dirname, 'screenshots');
-    const now = new Date();
-    const formattedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-    const screenshotName = `table_${formattedDate}_${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}.png`;
-    const screenshotPath = path.join(screenshotsDir, screenshotName);
-
-    if (!fs.existsSync(screenshotsDir)) {
-        fs.mkdirSync(screenshotsDir, { recursive: true });
-    }
-
     const browser = await puppeteer.launch({
         headless: true,
         defaultViewport: { width: 1920, height: 1080 }
@@ -157,15 +149,22 @@ async function getScreen(url, tableSelector) {
         }, tableSelector);
 
         const tableElement = await page.$(tableSelector);
-        await tableElement.screenshot({ path: screenshotPath });
-        await sendScreenshotToMake(screenshotPath);
-        console.log(`Скриншот таблицы сохранён: ${screenshotName}`);
+
+        // Делаем скриншот таблицы в формате base64
+        const screenshotBuffer = await tableElement.screenshot();
+        const base64Screenshot = screenshotBuffer.toString('base64');
+
+        // Отправляем скриншот через вебхук
+        await sendScreenshotToMake(base64Screenshot);
+
+        console.log('Скриншот отправлен в Make.com');
     } catch (error) {
         console.error('Ошибка при создании скриншота:', error.message);
     } finally {
         await browser.close();
     }
 }
+
 
 app.use(express.static('public')); // Для обслуживания статических файлов (HTML, CSS, JS)
 app.use(express.json()); // Для обработки JSON
