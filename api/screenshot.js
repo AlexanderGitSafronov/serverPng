@@ -9,6 +9,10 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
+app.use(express.static(path.join(__dirname, '../public')));
+ // Для обслуживания статических файлов (HTML, CSS, JS)
+app.use(express.json()); // Для обработки JSON
+
 let autoScreenshotInterval = null; // Для хранения ID таймера автозапуска
 let nextScreenshotTime = null; // Для хранения времени следующего скриншота
 
@@ -73,8 +77,7 @@ async function getScreen(url, tableSelector) {
 }
 
 
-app.use(express.static('public')); // Для обслуживания статических файлов (HTML, CSS, JS)
-app.use(express.json()); // Для обработки JSON
+
 
 app.post('/screenshot', async (req, res) => {
     const { url, tableSelector } = req.body;
