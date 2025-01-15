@@ -1,100 +1,4 @@
 
-//    const express = require('express');
-//    const puppeteer = require('puppeteer');
-//    const fs = require('fs');
-//    const path = require('path');
-   
-//    const app = express();
-//    const port = 3000;
-
-
-// async function getScreen(res, url, tableSelector) {
-//     const screenshotsDir = path.join(__dirname, 'screenshots');
-//     const now = new Date();
-//     const formattedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-//     const screenshotName = `table_${formattedDate}.png`;
-//     const screenshotPath = path.join(screenshotsDir, screenshotName);
-
-//     if (!fs.existsSync(screenshotsDir)) {
-//         fs.mkdirSync(screenshotsDir, { recursive: true });
-//     }
-
-//     const browser = await puppeteer.launch({
-//         headless: true,
-//         defaultViewport: { width: 1920, height: 1080 }
-//     });
-
-//     const page = await browser.newPage();
-//     await page.goto(url, { waitUntil: 'networkidle2' }); // Ждём полной загрузки страницы
-
-//     try {
-//         // Ожидание появления таблицы
-//         await page.waitForSelector(tableSelector, { timeout: 10000 });
-
-//         // Прокручиваем страницу до таблицы
-//         await page.evaluate((selector) => {
-//             const element = document.querySelector(selector);
-//             if (element) {
-//                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-//             }
-//         }, tableSelector);
-
-//         // Дожидаемся полного рендера таблицы (например, когда появится достаточное количество строк)
-//         await page.waitForFunction(
-//             (selector) => {
-//                 const table = document.querySelector(selector);
-//                 return table && table.querySelectorAll('tr').length > 1; // Проверяем, что в таблице больше 10 строк
-//             },
-//             { timeout: 10000 },
-//             tableSelector
-//         );
-
-//         // Делаем скриншот таблицы
-//         const tableElement = await page.$(tableSelector);
-//         await tableElement.screenshot({ path: screenshotPath });
-
-//         console.log(`Скриншот таблицы сохранён: ${screenshotName}`);
-//         res.send({ message: 'Скриншот сохранён', fileName: screenshotPath });
-//     } catch (error) {
-//         console.error('Ошибка при создании скриншота:', error);
-//         res.status(500).send({ message: error.message });
-//     } finally {
-//         await browser.close();
-//     }
-// }
-
-
-    
-    
-    
- 
-    
-//     app.use(express.static('public'));  // Для обслуживания статических файлов (HTML, CSS, JS)
-//     app.use(express.json()); // Для обработки JSON
-    
-//     // Роут для сбора скриншота
-//     app.post('/screenshot', async (req, res) => {
-//         const { url, tableSelector } = req.body;
-    
-//         if (!url || !tableSelector) {
-//             return res.status(400).send({ message: 'Не указаны URL или селектор таблицы' });
-//         }
-    
-//         try {
-//             await getScreen(res, url, tableSelector);
-//         } catch (error) {
-//             console.error('Ошибка при создании скриншота:', error);
-//             res.status(500).send({ message: 'Ошибка при создании скриншота' });
-//         }
-//     });
-    
-    
-//     app.listen(port, () => {
-//         console.log(`Сервер запущен на порту ${port} http://localhost:3000/`);
-//     });
-
-//----------------------------------------------------------------
-
 
 
 const express = require('express');
@@ -131,6 +35,7 @@ async function sendScreenshotToMake(base64Screenshot) {
 
 
 async function getScreen(url, tableSelector) {
+    console.log("2222222222222222222222222222222")
     const browser = await puppeteer.launch({
         headless: true,
         defaultViewport: { width: 1920, height: 1080 }
@@ -155,7 +60,7 @@ async function getScreen(url, tableSelector) {
         const screenshotBuffer = await tableElement.screenshot();
         const base64Screenshot = Buffer.from(screenshotBuffer).toString('base64');
         const base64String = `data:image/png;base64,${base64Screenshot}`;
-    
+    console.log(base64String)
         // Отправляем скриншот через вебхук
         await sendScreenshotToMake(base64String);
 
@@ -188,6 +93,7 @@ app.post('/screenshot', async (req, res) => {
 });
 
 app.post('/auto-screenshot', async (req, res) => {
+    console.log("11111111111111111")
     const { url, tableSelector, interval } = req.body;
 
     if (!url || !tableSelector || !interval) {

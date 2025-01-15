@@ -1,74 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UI для сбора скриншотов</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        input, button {
-            padding: 10px;
-            margin: 5px 0;
-            font-size: 16px;
-        }
-        button {
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-        }
-    </style>
-</head>
-<body>
-    <h1>Сбор скриншотов с таблицы</h1>
-    <label for="url">URL страницы:</label>
-    <input type="text" value="https://onlymonster.ai/s/Yi5m11DhNwiQK"  id="url" placeholder="Введите URL">
-    
-    <label for="tableSelector">CSS селектор таблицы:</label>
-    <input type="text" value=".lead-table"  id="tableSelector" placeholder="Введите CSS селектор">
-    
-    <button onclick="collectScreenshot()">Собрать скриншот</button>
-
-    <div id="result" style="margin-top: 20px;"></div>
-
-    <script>
-        async function collectScreenshot() {
-            const url = document.getElementById('url').value;
-            const tableSelector = document.getElementById('tableSelector').value;
-            const resultDiv = document.getElementById('result');
-            
-            if (!url || !tableSelector) {
-                resultDiv.innerHTML = 'Пожалуйста, введите URL и селектор таблицы.';
-                return;
-            }
-
-            resultDiv.innerHTML = 'Загрузка...';
-
-            try {
-                const response = await fetch('/screenshot', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, tableSelector })
-                });
-
-                const data = await response.json();
-                console.log(data)
-
-                if (response.ok) {
-                    resultDiv.innerHTML = `${data.message}`;
-                } else {
-                    resultDiv.innerHTML = `Ошибка: ${data.message}`;
-                }
-            } catch (error) {
-                resultDiv.innerHTML = 'Произошла ошибка при запросе на сервер.';
-            }
-        }
-    </script>
-</body>
-</html> -->
 
 
 <!DOCTYPE html>
@@ -178,7 +107,7 @@
                     document.getElementById('nextTime').textContent = 'Время для скриншота!';
 
                     // Отправляем запрос на сервер для создания скриншота
-                    fetch('/api/screenshot', {
+                    fetch('../api/screenshot', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ url, tableSelector: selector }),
@@ -199,7 +128,7 @@
             e.preventDefault();
             const url = document.getElementById('manualUrl').value;
             const selector = document.getElementById('manualSelector').value;
-            const response = await fetch('/api/screenshot', {
+            const response = await fetch('../api/screenshot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, tableSelector: selector }),
@@ -215,9 +144,9 @@
             const interval = parseInt(document.getElementById('autoInterval').value);
 
             showNotification('Автосбор запущен!'); // Показать уведомление о запуске автосбора
-
+        
             // Выполним первый сбор сразу
-            fetch('/api/screenshot', {
+            fetch('../api/screenshot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, tableSelector: selector }),
