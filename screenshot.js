@@ -108,6 +108,25 @@ const port = 3000;
 let autoScreenshotInterval = null; // Для хранения ID таймера автозапуска
 let nextScreenshotTime = null; // Для хранения времени следующего скриншота
 
+
+async function sendScreenshotToMake(screenshotPath) {
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(screenshotPath)); // Загружаем файл скриншота
+
+    try {
+        const response = await fetch('https://hook.eu2.make.com/j9i9v86ngvp3mkeogtj2bvef20c2brxd', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const data = await response.json();
+        console.log('Ответ от Make.com:', data);
+    } catch (error) {
+        console.error('Ошибка при отправке скриншота:', error);
+    }
+}
+
+
 async function getScreen(url, tableSelector) {
     const screenshotsDir = path.join(__dirname, 'screenshots');
     const now = new Date();
@@ -139,7 +158,7 @@ async function getScreen(url, tableSelector) {
 
         const tableElement = await page.$(tableSelector);
         await tableElement.screenshot({ path: screenshotPath });
-
+        await sendScreenshotToMake(screenshotPath);
         console.log(`Скриншот таблицы сохранён: ${screenshotName}`);
     } catch (error) {
         console.error('Ошибка при создании скриншота:', error.message);
